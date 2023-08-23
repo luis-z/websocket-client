@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        label, button {
+            font-size: 14px;
+        }
+
+        #serverUrl, #message, #output {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        button[disabled] {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:not([disabled]):hover {
+            background-color: #0056b3;
+        }
+
+        textarea {
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h2>WebSocket Client</h2>
+
+    <label for="serverUrl">WebSocket Server URL:</label>
+    <input type="text" id="serverUrl" value="ws://localhost:8081/ws">
+    <br><br>
+
+    <button id="connect">Connect</button>
+    <button id="disconnect" disabled>Disconnect</button>
+    <br><br>
+    
+    <textarea id="output" rows="10" readonly></textarea>
+    <br><br>
+
+    <input type="text" id="message" placeholder="Type your message...">
+    <button id="send" disabled>Send</button>
+
+    <script>
+        let socket;
+
+        document.getElementById('connect').onclick = function() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            
+            if (!serverUrl) {
+                logMessage('Please provide a WebSocket server URL');
+                return;
+            }
+
+            socket = new WebSocket(serverUrl);
+
+            socket.onopen = function(event) {
+                logMessage('Connected to WS server: ' + serverUrl);
+                document.getElementById('send').disabled = false;
+                document.getElementById('disconnect').disabled = false;
+            };
+
+            socket.onmessage = function(event) {
+                logMessage('From server: ' + event.data);
+            };
+
+            socket.onclose = function(event) {
+                logMessage('Disconnected from WS server');
+                document.getElementById('send').disabled = true;
+                document.getElementById('disconnect').disabled = true;
+            };
+
+            socket.onerror = function(error) {
+                logMessage('Error: ' + error.message);
+            };
+        };
+
+        document.getElementById('send').onclick = function() {
+            let message = document.getElementById('message').value;
+            if (message) {
+                socket.send(message);
+                logMessage('To server: ' + message);
+            }
+        };
+
+        document.getElementById('disconnect').onclick = function() {
+            socket.close();
+        };
+
+        function logMessage(message) {
+            let output = document.getElementById('output');
+            output.value += message + '\n';
+        }
+    </script>
+</body>
+</html>
